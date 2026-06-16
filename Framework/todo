@@ -1,0 +1,38 @@
+SPRINT 0:
+creer une branche git hub 
+manipuler les different main 
+creer une fonction qui recupere les URL , peut import ce que c est 
+envoyé sur la branche puis merger
+
+suite:(pour mardi)
+mianatra (mi creer) annotation : toerana azo ametrahana azy : class, methode, attribut
+preciser son champ d'application 
+preciser les noms de variables et attricbut qu on peut poser dans l'annotation
+
+puis creer une class pour annoter l annotaion 
+puis tester 
+
+SPRINT 1 : 
+creer une annotation qu on va mettre sur le controller (dans le framework): pour dire que la class est un controller
+= mg:itu.nomprojet-annotation.controller
+
+Test: 
+@Controller
+TestController1 
+TestController2
+
+mila code executer au demarrage application Web (utiliser listner)
+soit au premier appel FrontServlet(methode init)
+FrontServlet :-attribut List >string> listener
+                            init()
+
+annotation = - ALL class path no jereny 
+             - creer package
+
+Dans l'application de test , creer une variable dans le fichier xml
+ ayant une valeur de l'annotation controller dans le framework 
+Methode  qui verifier si l'annotation existe ou pas
+A donner :annotation - package - niveau
+
+
+
