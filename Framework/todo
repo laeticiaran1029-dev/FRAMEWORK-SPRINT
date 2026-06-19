@@ -1,4 +1,4 @@
-SPRINT 0:
+SPRINT 0:(ok)
 creer une branche git hub 
 manipuler les different main 
 creer une fonction qui recupere les URL , peut import ce que c est 
@@ -12,7 +12,7 @@ preciser les noms de variables et attribut qu'on peut poser dans l'annotation
 puis creer une class pour annoter l'annotation 
 puis tester 
 
-SPRINT 1 : 
+SPRINT 1 : (ok)
 creer une annotation qu on va mettre sur le controller (dans le framework):
  pour dire que la class est un controller
 exemple = mg:itu.nomprojet-annotation.controller 
