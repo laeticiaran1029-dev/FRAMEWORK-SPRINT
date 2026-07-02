@@ -1,8 +1,8 @@
 package framework.utils;
 
 public class Mapping {
-   private  String className;
-    private String methodName;
+    private final String className;
+     private final String methodName;
 
     public Mapping(String className, String methodName) {
         this.className = className;

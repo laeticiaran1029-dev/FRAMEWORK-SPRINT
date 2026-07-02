@@ -6,8 +6,8 @@ import annotation.Mapping;
 @Controller 
 public class B {
     
-   @Mapping(url = "/B")
-   public void methodeB() {
+    @Mapping(url = "/test", method = "POST")
+    public void methodeB() {
         System.out.println("Test method in TestController1");
     }
 }

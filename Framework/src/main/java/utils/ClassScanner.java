@@ -1,10 +1,10 @@
 package framework.utils;
 
+import annotation.Controller;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import annotation.Controller;
 
 public class ClassScanner {
 

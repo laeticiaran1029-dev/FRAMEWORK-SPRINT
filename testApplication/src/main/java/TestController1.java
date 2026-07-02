@@ -6,7 +6,7 @@ import annotation.Mapping;
 @Controller 
 public class TestController1 {
     
-   @Mapping(url = "/test")
+    @Mapping(url = "/test", method = "GET")
    public void testMethod() {
         System.out.println("Test method in TestController1");
     }
