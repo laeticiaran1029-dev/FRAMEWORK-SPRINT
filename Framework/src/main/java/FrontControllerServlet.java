@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
+import main.java.annotation.Mapping;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 
 public class FrontControllerServlet extends HttpServlet {
-    private final HashMap<framework.utils.RouteKey, framework.utils.Mapping> urlMappings = new HashMap<>();
+    private final HashMap<main.java.utils.RouteKey, main.java.utils.Mapping> urlMappings = new HashMap<>();
     private List<String> controllersList = new ArrayList<>();
     
     @Override
@@ -21,17 +22,17 @@ public class FrontControllerServlet extends HttpServlet {
         
         if (packageToScan != null) {
             try {
-                this.controllersList = framework.utils.ClassScanner.findControllers(packageToScan);
+                this.controllersList = main.java.utils.ClassScanner.findControllers(packageToScan);
                 for (String className : controllersList) {
                     Class<?> clazz = Class.forName(className);
                     for (Method method : clazz.getDeclaredMethods()) {
-                        if (method.isAnnotationPresent(annotation.Mapping.class)) {
-                            annotation.Mapping mappingAnnotation = method.getAnnotation(annotation.Mapping.class);
-                            framework.utils.RouteKey routeKey = new framework.utils.RouteKey(mappingAnnotation.url(), mappingAnnotation.method());
+                        if (method.isAnnotationPresent(Mapping.class)) {
+                            Mapping mappingAnnotation = method.getAnnotation(Mapping.class);
+                            main.java.utils.RouteKey routeKey = new main.java.utils.RouteKey(mappingAnnotation.url(), mappingAnnotation.method());
                             if (urlMappings.containsKey(routeKey)) {
                                 throw new ServletException("Route déjà déclarée : " + routeKey);
                             }
-                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName()));
+                            urlMappings.put(routeKey, new main.java.utils.Mapping(className, method.getName()));
                         }
                     }
                 }
@@ -49,20 +50,22 @@ public class FrontControllerServlet extends HttpServlet {
         String requestURI = request.getRequestURI();
         String contextPath = request.getContextPath();
         String url = requestURI.substring(contextPath.length());
-        framework.utils.RouteKey routeKey = new framework.utils.RouteKey(url, request.getMethod());
+        main.java.utils.RouteKey routeKey = new main.java.utils.RouteKey(url, request.getMethod());
 
         if (urlMappings.containsKey(routeKey)) {
             try {
-            framework.utils.Mapping mapping = urlMappings.get(routeKey);
+                main.java.utils.Mapping mapping = urlMappings.get(routeKey);
                 Class<?> clazz = Class.forName(mapping.getClassName());
                 Object instance = clazz.getDeclaredConstructor().newInstance();
                 Method method = clazz.getDeclaredMethod(mapping.getMethodName());
-                method.invoke(instance);
-                out.println("<h1>Succès : Affichage des résultats</h1>");
+                Object result = method.invoke(instance);
+
+                out.println("<h1>Contrôleur invoqué</h1>");
                 out.println("<p>Classe : <b>" + mapping.getClassName() + "</b></p>");
                 out.println("<p>&nbsp;&nbsp; - URL : <b>" + url + "</b></p>");
                 out.println("<p>&nbsp;&nbsp; - Méthode HTTP : <b>" + routeKey.getMethod() + "</b></p>");
-                out.println("<p>&nbsp;&nbsp; - Méthode : <b>" + mapping.getMethodName() + "</b></p>");
+                out.println("<p>&nbsp;&nbsp; - Méthode utilisée : <b>" + mapping.getMethodName() + "</b></p>");
+                out.println("<p>&nbsp;&nbsp; - Résultat : <b>" + (result == null ? "Aucun retour" : result.toString()) + "</b></p>");
                 
             } catch (Exception e) {
                 out.println("Erreur d'exécution : " + e.getMessage());
@@ -71,9 +74,9 @@ public class FrontControllerServlet extends HttpServlet {
             StringBuilder routesSupportees = new StringBuilder();
             routesSupportees.append("\n");
             
-            for (java.util.Map.Entry<framework.utils.RouteKey, framework.utils.Mapping> entry : urlMappings.entrySet()) {
-                framework.utils.RouteKey routeValide = entry.getKey();
-                framework.utils.Mapping mapping = entry.getValue();
+            for (java.util.Map.Entry<main.java.utils.RouteKey, main.java.utils.Mapping> entry : urlMappings.entrySet()) {
+                main.java.utils.RouteKey routeValide = entry.getKey();
+                main.java.utils.Mapping mapping = entry.getValue();
                 
                 routesSupportees.append("Classe : ").append(mapping.getClassName()).append("\n")
                                 .append("  - URL : ").append(routeValide.getUrl()).append("\n")

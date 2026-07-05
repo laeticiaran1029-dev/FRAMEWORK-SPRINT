@@ -1,10 +1,10 @@
-package framework.utils;
+package main.java.utils;
 
-import annotation.Controller;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import main.java.annotation.Controller;
 
 public class ClassScanner {
 
@@ -24,7 +24,7 @@ public class ClassScanner {
         }
 
         //  Récupérer le dossier
-        File directory = new File(resource.getFile());
+        File directory = new File(resource.toURI());
 
         // Parcourir tous les fichiers du dossier
         if (directory.exists() && directory.isDirectory()) {

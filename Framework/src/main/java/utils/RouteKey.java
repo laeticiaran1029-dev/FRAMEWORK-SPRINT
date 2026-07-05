@@ -1,4 +1,4 @@
-package framework.utils;
+package main.java.utils;
 
 import java.util.Objects;
 

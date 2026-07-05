@@ -64,3 +64,35 @@ il faut d abord tester si il y a la clé , en utilisant la methode
 "contains key"
 
 Partie 2: appeler la methode existant dans l'url  et invoquer
+
+sprint 4 : listner
+
+
+sprint 5:
+obj : page de liste 
+pas en dure avec l action controller mais dans la base de donnée(obj manaraka apres)
+
+pbm 1: mettez en dure dans la methode les liste et envoyer dans une view
+view return string liste( (param)model m)
+List<liste>
+
+model(classe)
+m.setAttribut("",...)
+
+on utilise map SetAttribut
+on ajoute 2 parametres , l autre prefixe, suffixe 
+.jsp 
+WEB/INF/view
+concatena
+invoquena methode de recuperena valeur de retour (aiza le view)
+
+
+on a alors Modelandview else invoquer
+resumé 
+recup modelandview 
+misy attribut map 
+                url
+concater dans init param
+
+jsp view boucle
+request.getAttribut

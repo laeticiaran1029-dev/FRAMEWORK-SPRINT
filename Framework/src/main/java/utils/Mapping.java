@@ -1,4 +1,4 @@
-package framework.utils;
+package main.java.utils;
 
 public class Mapping {
     private final String className;
