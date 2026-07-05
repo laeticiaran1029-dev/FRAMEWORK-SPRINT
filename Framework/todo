@@ -1,4 +1,4 @@
-SPRINT 0:
+SPRINT 0:(ok)
 creer une branche git hub 
 manipuler les different main 
 creer une fonction qui recupere les URL , peut import ce que c est 
@@ -12,7 +12,7 @@ preciser les noms de variables et attribut qu'on peut poser dans l'annotation
 puis creer une class pour annoter l'annotation 
 puis tester 
 
-SPRINT 1 : 
+SPRINT 1 : (ok)
 creer une annotation qu on va mettre sur le controller (dans le framework):
  pour dire que la class est un controller
 exemple = mg:itu.nomprojet-annotation.controller 
@@ -34,5 +34,65 @@ Dans l'application de test , creer une variable dans le fichier xml
 Methode  qui verifier si l'annotation existe ou pas
 A donner :annotation - package - niveau
 
+SPRINT 2:
+objectif (iza controller associer à l'URL)
+comment ?
+Creer une annotation poser sur une methode
+ex @controller
+EmpController
+=
+@urlmapping("/emp/list")
+donc="/emp/list"
+
+donc résultat attendu (url no antsoina)
+/emp/list ao amin'ny EmpCOntroller -> liste
+
+/emp/new  ao amin'ny EmpController -> create
+
+rehefa tsy fatatra dia manao throws "URL introuvable"
+dia tenena ny url supporteny
+
+le but c est que l'URL soit unique sinon ca affiche throws exception
+
+SPRINT 3
+Partie 1 : on peut utiliser le meme url si l'autre est GET et l'autre POST : creer une class et cette
+classe va creer la manipuler
+utilisant la méthode equals
+l'annotation prend un deuxieme argument optionnel ex:@url(\url,"GET");
+
+il faut d abord tester si il y a la clé , en utilisant la methode
+"contains key"
+
+Partie 2: appeler la methode existant dans l'url  et invoquer
+
+sprint 4 : listner
 
 
+sprint 5:
+obj : page de liste 
+pas en dure avec l action controller mais dans la base de donnée(obj manaraka apres)
+
+pbm 1: mettez en dure dans la methode les liste et envoyer dans une view
+view return string liste( (param)model m)
+List<liste>
+
+model(classe)
+m.setAttribut("",...)
+
+on utilise map SetAttribut
+on ajoute 2 parametres , l autre prefixe, suffixe 
+.jsp 
+WEB/INF/view
+concatena
+invoquena methode de recuperena valeur de retour (aiza le view)
+
+
+on a alors Modelandview else invoquer
+resumé 
+recup modelandview 
+misy attribut map 
+                url
+concater dans init param
+
+jsp view boucle
+request.getAttribut
