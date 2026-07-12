@@ -1,42 +1,47 @@
 package main.java;
 
+import framework.utils.ModelView;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
-import framework.utils.ClassScanner;
-import framework.utils.Mapping; 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
 import java.util.ArrayList;
 
 public class FrontControllerServlet extends HttpServlet {
-    private HashMap<String, Mapping> urlMappings = new HashMap<>();
+    private final HashMap<framework.utils.RouteKey, framework.utils.Mapping> urlMappings = new HashMap<>();
     private List<String> controllersList = new ArrayList<>();
+
+    private String viewPrefix;
+    private final String SUFFIX = ".jsp";
+
     @Override
     public void init() throws ServletException {
+        this.viewPrefix = getInitParameter("view-prefix");
+        if (this.viewPrefix == null) {
+            this.viewPrefix = "/WEB-INF/views/";
+        }
+
         String packageToScan = getInitParameter("controller-package");
-        
         if (packageToScan != null) {
             try {
-               this.controllersList = ClassScanner.findControllers(packageToScan);
+                this.controllersList = framework.utils.ClassScanner.findControllers(packageToScan);
                 for (String className : controllersList) {
                     Class<?> clazz = Class.forName(className);
                     for (Method method : clazz.getDeclaredMethods()) {
                         if (method.isAnnotationPresent(annotation.Mapping.class)) {
                             annotation.Mapping mappingAnnotation = method.getAnnotation(annotation.Mapping.class);
-                            String url = mappingAnnotation.url();
-                            urlMappings.put(url, new Mapping(className, method.getName()));
+                            framework.utils.RouteKey routeKey = new framework.utils.RouteKey(mappingAnnotation.url(), mappingAnnotation.method());
+                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName()));
                         }
                     }
                 }
-                System.out.println("Scan terminé. URLs trouvées et mappées : " + urlMappings.keySet());
             } catch (Exception e) {
-                throw new ServletException("Erreur lors du scan du package", e);
+                throw new ServletException("Erreur scan package", e);
             }
         }
     }
@@ -45,34 +50,43 @@ public class FrontControllerServlet extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        String requestURI = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        String url = requestURI.substring(contextPath.length());
+        
+        String url = request.getRequestURI().substring(request.getContextPath().length());
+        framework.utils.RouteKey routeKey = new framework.utils.RouteKey(url, request.getMethod());
 
-        if (urlMappings.containsKey(url)) {
+        if (urlMappings.containsKey(routeKey)) {
             try {
-                // 1. Récupérer les infos
-                Mapping mapping = urlMappings.get(url);
+                framework.utils.Mapping mapping = urlMappings.get(routeKey);
                 Class<?> clazz = Class.forName(mapping.getClassName());
                 Object instance = clazz.getDeclaredConstructor().newInstance();
                 Method method = clazz.getDeclaredMethod(mapping.getMethodName());
-                method.invoke(instance);
                 
-                out.println("<h1>Succès !</h1>");
-                out.println("<p>La méthode <b>" + mapping.getMethodName() + "</b> a bien été exécutée par le Framework !</p>");
-              out.println("<h2>Liste des contrôleurs trouvés :</h2>");
-                out.println("<ul>");
-                for (String nomController : this.controllersList) {
-                    out.println("<li>" + nomController + "</li>");
+                Object o = method.invoke(instance);
+
+                if (o instanceof ModelView) {
+                    ModelView mv = (ModelView) o;
+                    for (String key : mv.getData().keySet()) {
+                        request.setAttribute(key, mv.getData().get(key));
+                    }
+                    String path = viewPrefix + mv.getView() + SUFFIX;
+                    request.getRequestDispatcher(path).forward(request, response);
                 }
-                out.println("</ul>");
+    
+                else if (o != null) {
+                    out.println("<h1>Succès : Affichage des résultats</h1>");
+                    out.println("<p>URL appelée : <b>" + url + "</b></p>");
+                    out.println("<p>Méthode HTTP : <b>" + request.getMethod() + "</b></p>");
+                    out.println("<p>Classe : <b>" + mapping.getClassName() + "</b></p>");
+                    out.println("<p>Fonction utilisée : <b>" + mapping.getMethodName() + "</b></p>");
+                    out.println("<p>Résultat : " + o.toString() + "</p>");
+                }
                 
             } catch (Exception e) {
                 out.println("Erreur d'exécution : " + e.getMessage());
+                e.printStackTrace(out);
             }
         } else {
-            out.println("<h1>Erreur 404</h1>");
-            out.println("<p>Aucune méthode n'est associée à l'URL : " + url + "</p>");
+            response.sendError(404, "URL introuvable : " + url);
         }
     }
 
