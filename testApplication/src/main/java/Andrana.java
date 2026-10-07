@@ -16,7 +16,7 @@ public class Andrana {
     }
      @Mapping(url = "/api/test", method = "GET",json= true)
     public String apitest() {
-        return "coucou";
+        return "alefaa";
     }
 
     @Mapping(url = "/list", method = "GET")

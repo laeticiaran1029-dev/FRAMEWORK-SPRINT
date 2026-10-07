@@ -76,15 +76,22 @@ public class FrontControllerServlet extends HttpServlet {
                     throw new ServletException("Methode introuvable : " + mapping.getMethodName());
                 }
 
-                Object o;
-                if (Util.haveParameter(method, WebApplicationContext.class)) {
-                    if (springContext == null) {
-                        throw new ServletException("Pas de springContext disponible");
-                    }
-                    o = method.invoke(instance, springContext);
-                } else {
-                    o = method.invoke(instance);
-                }
+                Class<?>[] types = method.getParameterTypes();
+Object[] args = new Object[types.length];
+for (int i = 0; i < types.length; i++) {
+    if (types[i].equals(WebApplicationContext.class)) {
+        if (springContext == null) {
+            throw new ServletException("Pas de springContext disponible");
+        }
+        args[i] = springContext;
+    } else if (types[i] == HttpServletRequest.class) {
+        args[i] = request;
+    } else {
+        args[i] = bind(request, types[i]);
+    }
+}
+Object o = method.invoke(instance, args);
+
             
                 if(mapping.isJson()){
                     response.setContentType("application/json;charset=UTF-8");
@@ -117,6 +124,27 @@ public class FrontControllerServlet extends HttpServlet {
             response.sendError(404, "URL introuvable : " + url);
         }
     }
+    private Object bind(HttpServletRequest request, Class<?> objectType) throws Exception {
+    Object object = objectType.getDeclaredConstructor().newInstance();
+
+    for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
+        String value = request.getParameter(field.getName());
+        if (value == null || value.isEmpty()) continue;
+
+        field.setAccessible(true);
+        field.set(object, convert(value, field.getType()));
+    }
+    return object;
+}
+
+private Object convert(String value, Class<?> type) {
+    if (type == String.class) return value;
+    if (type == int.class || type == Integer.class) return Integer.parseInt(value);
+    if (type == long.class || type == Long.class) return Long.parseLong(value);
+    if (type == double.class || type == Double.class) return Double.parseDouble(value);
+    if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(value);
+    return null;
+}
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
