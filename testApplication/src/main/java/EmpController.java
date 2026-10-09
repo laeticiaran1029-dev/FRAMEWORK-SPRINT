@@ -1,5 +1,7 @@
 package main.java;
 
+import java.util.List;
+
 import annotation.Controller;
 import annotation.Mapping;
 import config.model.Emp;
@@ -26,5 +28,15 @@ public class EmpController {
     mv.addItem("prenom", prenom);
     return mv;
 }
+
+@Mapping(url = "/emp/liste", method = "GET")
+public ModelView liste(List<String> nom,List<String> prenom,List<Integer> age) {
+    ModelView mv = new ModelView("empListe");
+    mv.addItem("nom", nom);
+    mv.addItem("prenom", prenom);
+    mv.addItem("age", age);
+    return mv;
+}
+
 
 }

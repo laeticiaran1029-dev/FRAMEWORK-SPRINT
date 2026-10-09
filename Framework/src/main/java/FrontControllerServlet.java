@@ -89,9 +89,30 @@ for (int i = 0; i < params.length; i++) {
         args[i] = springContext;
     } else if (type == HttpServletRequest.class) {
         args[i] = request;
+       } else if (type.isArray()) {
+        String[] values = request.getParameterValues(params[i].getName());
+        Class<?> elem = type.getComponentType();
+        Object array = java.lang.reflect.Array.newInstance(elem, values == null ? 0 : values.length);
+        for (int k = 0; values != null && k < values.length; k++) {
+            java.lang.reflect.Array.set(array, k, convert(values[k], elem));
+        }
+        args[i] = array;
+    } else if (List.class.isAssignableFrom(type)) {
+        String[] values = request.getParameterValues(params[i].getName());
+        Class<?> elem = String.class;
+        if (params[i].getParameterizedType() instanceof java.lang.reflect.ParameterizedType) {
+            java.lang.reflect.ParameterizedType pt = (java.lang.reflect.ParameterizedType) params[i].getParameterizedType();
+            elem = (Class<?>) pt.getActualTypeArguments()[0];
+        }
+        List<Object> list = new ArrayList<>();
+        for (int k = 0; values != null && k < values.length; k++) {
+            list.add(convert(values[k], elem));
+        }
+        args[i] = list;
     } else {
         args[i] = convert(request.getParameter(params[i].getName()), type);
     }
+
 }
 Object o = method.invoke(instance, args);
 
