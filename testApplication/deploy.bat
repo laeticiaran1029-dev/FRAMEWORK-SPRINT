@@ -49,7 +49,8 @@ for /R "%SRC_DIR%" %%F in (*.java) do (
     echo "!SOURCE_FILE:\=/!" >> sources.txt
 )
 
-javac -cp "%CLASSPATH%" -d "%BUILD_DIR%\WEB-INF\classes" @sources.txt
+javac -parameters -cp "%CLASSPATH%" -d "%BUILD_DIR%\WEB-INF\classes" @sources.txt
+
 if errorlevel 1 (
     echo Compilation failed.
     del sources.txt

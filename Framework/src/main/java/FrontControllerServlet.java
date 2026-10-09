@@ -10,10 +10,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import com.google.gson.Gson;
+
 
 public class FrontControllerServlet extends HttpServlet {
     private final HashMap<framework.utils.RouteKey, framework.utils.Mapping> urlMappings = new HashMap<>();
@@ -76,18 +78,19 @@ public class FrontControllerServlet extends HttpServlet {
                     throw new ServletException("Methode introuvable : " + mapping.getMethodName());
                 }
 
-                Class<?>[] types = method.getParameterTypes();
-Object[] args = new Object[types.length];
-for (int i = 0; i < types.length; i++) {
-    if (types[i].equals(WebApplicationContext.class)) {
+             Parameter[] params = method.getParameters();
+Object[] args = new Object[params.length];
+for (int i = 0; i < params.length; i++) {
+    Class<?> type = params[i].getType();
+    if (type.equals(WebApplicationContext.class)) {
         if (springContext == null) {
             throw new ServletException("Pas de springContext disponible");
         }
         args[i] = springContext;
-    } else if (types[i] == HttpServletRequest.class) {
+    } else if (type == HttpServletRequest.class) {
         args[i] = request;
     } else {
-        args[i] = bind(request, types[i]);
+        args[i] = convert(request.getParameter(params[i].getName()), type);
     }
 }
 Object o = method.invoke(instance, args);
@@ -124,27 +127,29 @@ Object o = method.invoke(instance, args);
             response.sendError(404, "URL introuvable : " + url);
         }
     }
-    private Object bind(HttpServletRequest request, Class<?> objectType) throws Exception {
-    Object object = objectType.getDeclaredConstructor().newInstance();
+//     private Object bind(HttpServletRequest request, Class<?> objectType) throws Exception {
+//     Object object = objectType.getDeclaredConstructor().newInstance();
 
-    for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
-        String value = request.getParameter(field.getName());
-        if (value == null || value.isEmpty()) continue;
+//     for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
+//         String value = request.getParameter(field.getName());
+//         if (value == null || value.isEmpty()) continue;
 
-        field.setAccessible(true);
-        field.set(object, convert(value, field.getType()));
-    }
-    return object;
-}
-
+//         field.setAccessible(true);
+//         field.set(object, convert(value, field.getType()));
+//     }
+//     return object;
+// }
 private Object convert(String value, Class<?> type) {
+    boolean empty = (value == null || value.isEmpty());
     if (type == String.class) return value;
-    if (type == int.class || type == Integer.class) return Integer.parseInt(value);
-    if (type == long.class || type == Long.class) return Long.parseLong(value);
-    if (type == double.class || type == Double.class) return Double.parseDouble(value);
-    if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(value);
+    if (type == int.class) return empty ? 0 : Integer.parseInt(value);
+    if (type == Integer.class) return empty ? null : Integer.parseInt(value);
+    if (type == long.class) return empty ? 0L : Long.parseLong(value);
+    if (type == double.class) return empty ? 0.0 : Double.parseDouble(value);
+    if (type == boolean.class) return !empty && Boolean.parseBoolean(value);
     return null;
 }
+
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
