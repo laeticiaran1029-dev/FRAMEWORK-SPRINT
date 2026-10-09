@@ -1,42 +1,52 @@
 package main.java;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import framework.utils.ClassScanner;
-import framework.utils.Mapping; 
+import framework.utils.ModelView;
+import framework.utils.Util;
+import org.springframework.web.context.WebApplicationContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import com.google.gson.Gson;
+
 
 public class FrontControllerServlet extends HttpServlet {
-    private HashMap<String, Mapping> urlMappings = new HashMap<>();
+    private final HashMap<framework.utils.RouteKey, framework.utils.Mapping> urlMappings = new HashMap<>();
     private List<String> controllersList = new ArrayList<>();
+
+    private String viewPrefix;
+    private final String SUFFIX = ".jsp";
+
     @Override
     public void init() throws ServletException {
+        this.viewPrefix = getInitParameter("view-prefix");
+        if (this.viewPrefix == null) {
+            this.viewPrefix = "/WEB-INF/views/";
+        }
+
         String packageToScan = getInitParameter("controller-package");
-        
         if (packageToScan != null) {
             try {
-               this.controllersList = ClassScanner.findControllers(packageToScan);
+                this.controllersList = framework.utils.ClassScanner.findControllers(packageToScan);
                 for (String className : controllersList) {
                     Class<?> clazz = Class.forName(className);
                     for (Method method : clazz.getDeclaredMethods()) {
                         if (method.isAnnotationPresent(annotation.Mapping.class)) {
                             annotation.Mapping mappingAnnotation = method.getAnnotation(annotation.Mapping.class);
-                            String url = mappingAnnotation.url();
-                            urlMappings.put(url, new Mapping(className, method.getName()));
+                            framework.utils.RouteKey routeKey = new framework.utils.RouteKey(mappingAnnotation.url(), mappingAnnotation.method());
+                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName(),mappingAnnotation.json()));
                         }
                     }
                 }
-                System.out.println("Scan terminé. URLs trouvées et mappées : " + urlMappings.keySet());
             } catch (Exception e) {
-                throw new ServletException("Erreur lors du scan du package", e);
+                throw new ServletException("Erreur scan package", e);
             }
         }
     }
@@ -45,36 +55,122 @@ public class FrontControllerServlet extends HttpServlet {
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        String requestURI = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        String url = requestURI.substring(contextPath.length());
+        
+        String url = request.getRequestURI().substring(request.getContextPath().length());
+        framework.utils.RouteKey routeKey = new framework.utils.RouteKey(url, request.getMethod());
 
-        if (urlMappings.containsKey(url)) {
+        WebApplicationContext springContext =
+            (WebApplicationContext) getServletContext().getAttribute("springContext");
+
+        if (urlMappings.containsKey(routeKey)) {
             try {
-                // 1. Récupérer les infos
-                Mapping mapping = urlMappings.get(url);
+                framework.utils.Mapping mapping = urlMappings.get(routeKey);
                 Class<?> clazz = Class.forName(mapping.getClassName());
                 Object instance = clazz.getDeclaredConstructor().newInstance();
-                Method method = clazz.getDeclaredMethod(mapping.getMethodName());
-                method.invoke(instance);
-                
-                out.println("<h1>Succès !</h1>");
-                out.println("<p>La méthode <b>" + mapping.getMethodName() + "</b> a bien été exécutée par le Framework !</p>");
-              out.println("<h2>Liste des contrôleurs trouvés :</h2>");
-                out.println("<ul>");
-                for (String nomController : this.controllersList) {
-                    out.println("<li>" + nomController + "</li>");
+                Method method = null;
+                for (Method m : clazz.getDeclaredMethods()) {
+                    if (m.getName().equals(mapping.getMethodName())) {
+                        method = m;
+                        break;
+                    }
                 }
-                out.println("</ul>");
-                
+                if (method == null) {
+                    throw new ServletException("Methode introuvable : " + mapping.getMethodName());
+                }
+
+             Parameter[] params = method.getParameters();
+Object[] args = new Object[params.length];
+for (int i = 0; i < params.length; i++) {
+    Class<?> type = params[i].getType();
+    if (type.equals(WebApplicationContext.class)) {
+        if (springContext == null) {
+            throw new ServletException("Pas de springContext disponible");
+        }
+        args[i] = springContext;
+    } else if (type == HttpServletRequest.class) {
+        args[i] = request;
+       } else if (type.isArray()) {
+        String[] values = request.getParameterValues(params[i].getName());
+        Class<?> elem = type.getComponentType();
+        Object array = java.lang.reflect.Array.newInstance(elem, values == null ? 0 : values.length);
+        for (int k = 0; values != null && k < values.length; k++) {
+            java.lang.reflect.Array.set(array, k, convert(values[k], elem));
+        }
+        args[i] = array;
+    } else if (List.class.isAssignableFrom(type)) {
+        String[] values = request.getParameterValues(params[i].getName());
+        Class<?> elem = String.class;
+        if (params[i].getParameterizedType() instanceof java.lang.reflect.ParameterizedType) {
+            java.lang.reflect.ParameterizedType pt = (java.lang.reflect.ParameterizedType) params[i].getParameterizedType();
+            elem = (Class<?>) pt.getActualTypeArguments()[0];
+        }
+        List<Object> list = new ArrayList<>();
+        for (int k = 0; values != null && k < values.length; k++) {
+            list.add(convert(values[k], elem));
+        }
+        args[i] = list;
+    } else {
+        args[i] = convert(request.getParameter(params[i].getName()), type);
+    }
+
+}
+Object o = method.invoke(instance, args);
+
+            
+                if(mapping.isJson()){
+                    response.setContentType("application/json;charset=UTF-8");
+                    Gson gson = new Gson();
+                    String json= gson.toJson(o);
+                    out.println(json);
+                }
+                else if(o instanceof ModelView){
+                      ModelView mv = (ModelView) o;
+                    for (String key : mv.getData().keySet()) {
+                        request.setAttribute(key, mv.getData().get(key));
+                    }
+                    String path = viewPrefix + mv.getView() + SUFFIX;
+                    request.getRequestDispatcher(path).forward(request, response);
+                    }
+    
+                else if (o != null) {
+                    out.println("<h1>Succès : Affichage des résultats</h1>");
+                    out.println("<p>URL appelée : <b>" + url + "</b></p>");
+                    out.println("<p>Méthode HTTP : <b>" + request.getMethod() + "</b></p>");
+                    out.println("<p>Classe : <b>" + mapping.getClassName() + "</b></p>");
+                    out.println("<p>Fonction utilisée : <b>" + mapping.getMethodName() + "</b></p>");
+                    out.println("<p>Résultat : " + o.toString() + "</p>");
+                }
             } catch (Exception e) {
                 out.println("Erreur d'exécution : " + e.getMessage());
+                e.printStackTrace(out);
             }
         } else {
-            out.println("<h1>Erreur 404</h1>");
-            out.println("<p>Aucune méthode n'est associée à l'URL : " + url + "</p>");
+            response.sendError(404, "URL introuvable : " + url);
         }
     }
+//     private Object bind(HttpServletRequest request, Class<?> objectType) throws Exception {
+//     Object object = objectType.getDeclaredConstructor().newInstance();
+
+//     for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
+//         String value = request.getParameter(field.getName());
+//         if (value == null || value.isEmpty()) continue;
+
+//         field.setAccessible(true);
+//         field.set(object, convert(value, field.getType()));
+//     }
+//     return object;
+// }
+private Object convert(String value, Class<?> type) {
+    boolean empty = (value == null || value.isEmpty());
+    if (type == String.class) return value;
+    if (type == int.class) return empty ? 0 : Integer.parseInt(value);
+    if (type == Integer.class) return empty ? null : Integer.parseInt(value);
+    if (type == long.class) return empty ? 0L : Long.parseLong(value);
+    if (type == double.class) return empty ? 0.0 : Double.parseDouble(value);
+    if (type == boolean.class) return !empty && Boolean.parseBoolean(value);
+    return null;
+}
+
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
