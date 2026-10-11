@@ -29,12 +29,18 @@ public class EmpController {
     return mv;
 }
 
-@Mapping(url = "/emp/liste", method = "GET")
-public ModelView liste(List<String> nom,List<String> prenom,List<Integer> age) {
-    ModelView mv = new ModelView("empListe");
-    mv.addItem("nom", nom);
-    mv.addItem("prenom", prenom);
-    mv.addItem("age", age);
+@Mapping(url = "/emp/liste", method = "POST")
+public ModelView liste(List<Emp> emps) {
+    ModelView mv = new ModelView("empResult");
+    mv.addItem("emps", emps);
+    return mv;
+}
+
+
+@Mapping(url = "/emp/detail", method = "POST")
+public ModelView detail(Emp emp) {
+    ModelView mv = new ModelView("empResult");
+    mv.addItem("emp", emp);
     return mv;
 }
 

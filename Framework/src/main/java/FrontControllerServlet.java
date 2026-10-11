@@ -78,7 +78,7 @@ public class FrontControllerServlet extends HttpServlet {
                     throw new ServletException("Methode introuvable : " + mapping.getMethodName());
                 }
 
-             Parameter[] params = method.getParameters();
+            Parameter[] params = method.getParameters();
 Object[] args = new Object[params.length];
 for (int i = 0; i < params.length; i++) {
     Class<?> type = params[i].getType();
@@ -89,30 +89,39 @@ for (int i = 0; i < params.length; i++) {
         args[i] = springContext;
     } else if (type == HttpServletRequest.class) {
         args[i] = request;
-       } else if (type.isArray()) {
+    } else if (type.isArray()) {
         String[] values = request.getParameterValues(params[i].getName());
         Class<?> elem = type.getComponentType();
         Object array = java.lang.reflect.Array.newInstance(elem, values == null ? 0 : values.length);
         for (int k = 0; values != null && k < values.length; k++) {
             java.lang.reflect.Array.set(array, k, convert(values[k], elem));
         }
-        args[i] = array;
+               args[i] = array;
     } else if (List.class.isAssignableFrom(type)) {
-        String[] values = request.getParameterValues(params[i].getName());
         Class<?> elem = String.class;
         if (params[i].getParameterizedType() instanceof java.lang.reflect.ParameterizedType) {
             java.lang.reflect.ParameterizedType pt = (java.lang.reflect.ParameterizedType) params[i].getParameterizedType();
             elem = (Class<?>) pt.getActualTypeArguments()[0];
         }
         List<Object> list = new ArrayList<>();
-        for (int k = 0; values != null && k < values.length; k++) {
-            list.add(convert(values[k], elem));
+        String name = params[i].getName();
+
+        if (isSimple(elem)) {
+            String[] values = request.getParameterValues(name);
+            for (int k = 0; values != null && k < values.length; k++) {
+                list.add(convert(values[k], elem));
+            }
+        } else {
+            for (int k = 0; hasParameterStartingWith(request, name + "[" + k + "]."); k++) {
+                list.add(bind(request, elem, name + "[" + k + "]."));
+            }
         }
         args[i] = list;
-    } else {
+    } else if (isSimple(type)) {
         args[i] = convert(request.getParameter(params[i].getName()), type);
+    } else {
+        args[i] = bind(request, type, "");
     }
-
 }
 Object o = method.invoke(instance, args);
 
@@ -148,18 +157,32 @@ Object o = method.invoke(instance, args);
             response.sendError(404, "URL introuvable : " + url);
         }
     }
-//     private Object bind(HttpServletRequest request, Class<?> objectType) throws Exception {
-//     Object object = objectType.getDeclaredConstructor().newInstance();
+private Object bind(HttpServletRequest request, Class<?> objectType, String prefix) throws Exception {
+    Object object = objectType.getDeclaredConstructor().newInstance();
 
-//     for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
-//         String value = request.getParameter(field.getName());
-//         if (value == null || value.isEmpty()) continue;
+    for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
+        String value = request.getParameter(prefix + field.getName());
+        if (value == null || value.isEmpty()) continue;
 
-//         field.setAccessible(true);
-//         field.set(object, convert(value, field.getType()));
-//     }
-//     return object;
-// }
+        field.setAccessible(true);
+        field.set(object, convert(value, field.getType()));
+    }
+    return object;
+}
+
+private boolean isSimple(Class<?> type) {
+    return type == String.class || type.isPrimitive()
+        || Number.class.isAssignableFrom(type) || type == Boolean.class;
+}
+private boolean hasParameterStartingWith(HttpServletRequest request, String prefix) {
+    java.util.Enumeration<String> names = request.getParameterNames();
+    while (names.hasMoreElements()) {
+        if (names.nextElement().startsWith(prefix)) return true;
+    }
+    return false;
+}
+
+
 private Object convert(String value, Class<?> type) {
     boolean empty = (value == null || value.isEmpty());
     if (type == String.class) return value;

@@ -2,25 +2,24 @@
 <html>
 <body>
   <h1>Employés</h1>
-  <form action="${pageContext.request.contextPath}/emp/liste" method="get">
-    <div id="lignes">
-      <div class="ligne">
-        <input name="nom" placeholder="Nom">
-        <input name="prenom" placeholder="Prenom">
-        <input name="age" type="number" placeholder="Age">
-      </div>
-    </div>
+  <form action="${pageContext.request.contextPath}/emp/liste" method="post">
+    <div id="lignes"></div>
     <button type="button" onclick="ajouter()">+ Ajouter un employé</button>
     <button type="submit">Envoyer</button>
   </form>
 
   <script>
+    var n = 0;
     function ajouter() {
-      var modele = document.querySelector('.ligne');
-      var copie = modele.cloneNode(true);
-      copie.querySelectorAll('input').forEach(function (i) { i.value = ''; });
-      document.getElementById('lignes').appendChild(copie);
+      var d = document.createElement('div');
+      d.innerHTML =
+        '<input name="emps[' + n + '].nom" placeholder="Nom"> ' +
+        '<input name="emps[' + n + '].prenom" placeholder="Prénom"> ' +
+        '<input name="emps[' + n + '].age" type="number" placeholder="Age">';
+      document.getElementById('lignes').appendChild(d);
+      n++;
     }
+    ajouter();
   </script>
 </body>
 </html>
