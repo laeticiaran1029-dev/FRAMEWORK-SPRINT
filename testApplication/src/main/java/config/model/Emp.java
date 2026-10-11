@@ -4,6 +4,7 @@ public class Emp {
     private String nom;
     private String prenom;
     private int age;
+private Departement departement;
 
     public Emp() {
     }
@@ -22,4 +23,14 @@ public class Emp {
 
     public int getAge() { return age; }
     public void setAge(int age) { this.age = age; }
+
+    public Departement getDepartement() {
+        return departement;
+     }
+    public void setDepartement(Departement departement) {
+        this.departement = departement;
+
+    }
+
+
 }

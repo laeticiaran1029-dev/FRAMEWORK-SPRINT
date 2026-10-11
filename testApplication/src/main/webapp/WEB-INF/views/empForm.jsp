@@ -13,9 +13,12 @@
     function ajouter() {
       var d = document.createElement('div');
       d.innerHTML =
-        '<input name="emps[' + n + '].nom" placeholder="Nom"> ' +
-        '<input name="emps[' + n + '].prenom" placeholder="Prénom"> ' +
-        '<input name="emps[' + n + '].age" type="number" placeholder="Age">';
+  '<input name="emps[' + n + '].nom" placeholder="Nom"> ' +
+  '<input name="emps[' + n + '].prenom" placeholder="Prénom"> ' +
+  '<input name="emps[' + n + '].age" type="number" placeholder="Age"> ' +
+  '<input name="emps[' + n + '].departement.nom" placeholder="Département"> ' +
+  '<input name="emps[' + n + '].departement.ville" placeholder="Ville">';
+
       document.getElementById('lignes').appendChild(d);
       n++;
     }

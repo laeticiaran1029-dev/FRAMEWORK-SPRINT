@@ -96,7 +96,7 @@ for (int i = 0; i < params.length; i++) {
         for (int k = 0; values != null && k < values.length; k++) {
             java.lang.reflect.Array.set(array, k, convert(values[k], elem));
         }
-               args[i] = array;
+            args[i] = array;
     } else if (List.class.isAssignableFrom(type)) {
         Class<?> elem = String.class;
         if (params[i].getParameterizedType() instanceof java.lang.reflect.ParameterizedType) {
@@ -133,7 +133,7 @@ Object o = method.invoke(instance, args);
                     out.println(json);
                 }
                 else if(o instanceof ModelView){
-                      ModelView mv = (ModelView) o;
+                    ModelView mv = (ModelView) o;
                     for (String key : mv.getData().keySet()) {
                         request.setAttribute(key, mv.getData().get(key));
                     }
@@ -161,14 +161,23 @@ private Object bind(HttpServletRequest request, Class<?> objectType, String pref
     Object object = objectType.getDeclaredConstructor().newInstance();
 
     for (java.lang.reflect.Field field : objectType.getDeclaredFields()) {
-        String value = request.getParameter(prefix + field.getName());
-        if (value == null || value.isEmpty()) continue;
-
         field.setAccessible(true);
-        field.set(object, convert(value, field.getType()));
+        Class<?> fieldType = field.getType();
+
+        if (isSimple(fieldType)) {
+            String value = request.getParameter(prefix + field.getName());
+            if (value == null || value.isEmpty()) continue;
+            field.set(object, convert(value, fieldType));
+        } else {
+            String subPrefix = prefix + field.getName() + ".";
+            if (hasParameterStartingWith(request, subPrefix)) {
+                field.set(object, bind(request, fieldType, subPrefix));
+            }
+        }
     }
     return object;
 }
+
 
 private boolean isSimple(Class<?> type) {
     return type == String.class || type.isPrimitive()

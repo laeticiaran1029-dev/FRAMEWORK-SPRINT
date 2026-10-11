@@ -10,11 +10,16 @@
           for (int i = 0; i < emps.size(); i++) {
               Emp e = emps.get(i);
   %>
-      <li>Employé <%= i + 1 %> : <%= e.getNom() %> <%= e.getPrenom() %>, <%= e.getAge() %> ans</li>
-  <%
+     <li>Employé <%= i + 1 %> : <%= e.getNom() %> <%= e.getPrenom() %>, <%= e.getAge() %> ans
+    <% if (e.getDepartement() != null) { %>
+      — département <%= e.getDepartement().getNom() %> (<%= e.getDepartement().getVille() %>)
+    <% } %>
+</li>
+<%
           }
       }
-  %>
+%>
+
   </ul>
 </body>
 </html>
