@@ -101,4 +101,20 @@ sprint7(dans chat)
 
  ?? manome formulaire dia tokony ho feno koa le object amin ny attibut anle object 
  donc object dans object 
+
+ suite ------
+ upload (type tableau byte)
+ utilisation de map 
+ inpute type =file 
+
+ file ?? : stocker server 
+           bdd
  
+ ou onn creer notre class ex MapFile 
+ attribut  filename + extension ; binaire 
+
+ type class = Mapfile 
+ instancé dans framework
+
+ a se souvenir : le framework ne prends pas en compte 
+ les fichier readme

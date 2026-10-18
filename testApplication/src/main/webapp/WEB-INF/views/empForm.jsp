@@ -2,8 +2,10 @@
 <html>
 <body>
   <h1>Employés</h1>
-  <form action="${pageContext.request.contextPath}/emp/liste" method="post">
-    <div id="lignes"></div>
+  <form action="${pageContext.request.contextPath}/emp/liste" method="post" enctype="multipart/form-data">
+    <div id="lignes">
+      <input type="file" name="photo">
+    </div>
     <button type="button" onclick="ajouter()">+ Ajouter un employé</button>
     <button type="submit">Envoyer</button>
   </form>

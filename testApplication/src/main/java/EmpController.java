@@ -5,7 +5,10 @@ import java.util.List;
 import annotation.Controller;
 import annotation.Mapping;
 import config.model.Emp;
+import framework.utils.Mapfile;
 import framework.utils.ModelView;
+import framework.utils.Mapfile;
+
 
 @Controller
 public class EmpController {
@@ -18,6 +21,7 @@ public class EmpController {
     @Mapping(url = "/emp/save", method = "POST")
     public void save(Emp emp) {
         System.out.println(emp.getNom() + " " + emp.getPrenom() + " " + emp.getAge());
+        
     }
 
     @Mapping(url = "/emp/info", method = "GET")
@@ -30,10 +34,17 @@ public class EmpController {
 }
 
 @Mapping(url = "/emp/liste", method = "POST")
-public ModelView liste(List<Emp> emps) {
+public ModelView liste(List<Emp> emps,Mapfile photo) {
     ModelView mv = new ModelView("empResult");
     mv.addItem("emps", emps);
+    if (photo != null) {
+    System.out.println(photo.getFileName());
+    System.out.println(photo.getContent().length);
+}
+
+    
     return mv;
+
 }
 
 

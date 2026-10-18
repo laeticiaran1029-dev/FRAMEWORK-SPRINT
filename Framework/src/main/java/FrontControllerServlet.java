@@ -4,6 +4,7 @@ import framework.utils.ModelView;
 import framework.utils.Util;
 import org.springframework.web.context.WebApplicationContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,22 +16,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import com.google.gson.Gson;
+import jakarta.servlet.http.Part;
+import framework.utils.Mapfile;
 
 
+@MultipartConfig
 public class FrontControllerServlet extends HttpServlet {
     private final HashMap<framework.utils.RouteKey, framework.utils.Mapping> urlMappings = new HashMap<>();
     private List<String> controllersList = new ArrayList<>();
 
     private String viewPrefix;
+    private String uploadPath;
     private final String SUFFIX = ".jsp";
+
 
     @Override
     public void init() throws ServletException {
         this.viewPrefix = getInitParameter("view-prefix");
+        this.uploadPath = getInitParameter("upload-path");
+       
         if (this.viewPrefix == null) {
             this.viewPrefix = "/WEB-INF/views/";
         }
-
+        if (this.uploadPath == null){
+            this.uploadPath="C:/uploads";
+        }
         String packageToScan = getInitParameter("controller-package");
         if (packageToScan != null) {
             try {
@@ -49,6 +59,7 @@ public class FrontControllerServlet extends HttpServlet {
                 throw new ServletException("Erreur scan package", e);
             }
         }
+        System.out.println(uploadPath);
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) 
@@ -117,6 +128,22 @@ for (int i = 0; i < params.length; i++) {
             }
         }
         args[i] = list;
+        
+    }else if (type == Mapfile.class) {
+        Part part = request.getPart(params[i].getName());
+        if(part != null && part.getSize() > 0){
+        String nom = part.getSubmittedFileName();
+        String extension = nom.substring(nom.lastIndexOf(".")+1);
+        byte[] content = part.getInputStream().readAllBytes();
+
+        Mapfile mapfile =new Mapfile(nom , extension , content);
+        mapfile.save(uploadPath);
+        args[i] = mapfile;
+        }else{
+            args[i]=null;
+        }
+    
+
     } else if (isSimple(type)) {
         args[i] = convert(request.getParameter(params[i].getName()), type);
     } else {

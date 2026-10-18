@@ -43,6 +43,11 @@
             <param-name>view-prefix</param-name>
             <param-value>/WEB-INF/views/</param-value>
         </init-param>
+
+        <init-param>
+            <param-name>upload-path</param-name>
+            <param-value>C:/uploads</param-value>
+        </init-param>
         
         <load-on-startup>1</load-on-startup>
     </servlet>
