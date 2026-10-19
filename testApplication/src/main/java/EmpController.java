@@ -37,6 +37,7 @@ public class EmpController {
 public ModelView liste(List<Emp> emps,Mapfile photo) {
     ModelView mv = new ModelView("empResult");
     mv.addItem("emps", emps);
+    mv.addItem("photo", photo);
     if (photo != null) {
     System.out.println(photo.getFileName());
     System.out.println(photo.getContent().length);

@@ -14,6 +14,7 @@
         <%= noms.get(i) %>
         <%= prenoms.get(i) %>,
         <%= ages.get(i) %> ans
+        
     
         
         </li>

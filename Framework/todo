@@ -118,3 +118,11 @@ sprint7(dans chat)
 
  a se souvenir : le framework ne prends pas en compte 
  les fichier readme
+
+ suite , session :
+ authentification vao tsy misy session de tsy mety 
+ but : atao izay ho disponnible an ilay utilisateur ao anaty controller 
+ahoana no ahatonga an ilay session ho dispo anaty methode d'action (cotroller)
+
+ comment à mon avis : 
+ dans empcontroller on ajoute une session pour recuprer le nom de l'employé inserer

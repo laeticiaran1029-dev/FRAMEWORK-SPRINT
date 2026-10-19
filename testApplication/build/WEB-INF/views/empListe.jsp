@@ -10,7 +10,14 @@
         List<Integer> ages = (List<Integer>) request.getAttribute("age");
         for (int i = 0; i < noms.size(); i++) {
     %>
-       <li>Employé <%= i + 1 %> : <%= noms.get(i) %> <%= prenoms.get(i) %>, <%= ages.get(i) %> ans</li>
+    <li>Employé <%= i + 1 %> :
+        <%= noms.get(i) %>
+        <%= prenoms.get(i) %>,
+        <%= ages.get(i) %> ans
+        
+    
+        
+        </li>
     <%
         }
     %>
