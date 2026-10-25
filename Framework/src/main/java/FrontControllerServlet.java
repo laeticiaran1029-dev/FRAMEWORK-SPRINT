@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import com.google.gson.Gson;
 import jakarta.servlet.http.Part;
 import framework.utils.Mapfile;
+import framework.utils.Mysession;
+import jakarta.servlet.http.HttpSession;
 
 
 @MultipartConfig
@@ -91,6 +93,7 @@ public class FrontControllerServlet extends HttpServlet {
 
             Parameter[] params = method.getParameters();
 Object[] args = new Object[params.length];
+Mysession mysession = null;
 for (int i = 0; i < params.length; i++) {
     Class<?> type = params[i].getType();
     if (type.equals(WebApplicationContext.class)) {
@@ -100,6 +103,15 @@ for (int i = 0; i < params.length; i++) {
         args[i] = springContext;
     } else if (type == HttpServletRequest.class) {
         args[i] = request;
+    } else if (type == HttpSession.class) {
+        args[i] = request.getSession();
+    } else if (type == Mysession.class) {
+        // une seule instance par requete, remplie depuis la HttpSession
+        if (mysession == null) {
+            mysession = new Mysession();
+            mysession.load(request.getSession());
+        }
+        args[i] = mysession;
     } else if (type.isArray()) {
         String[] values = request.getParameterValues(params[i].getName());
         Class<?> elem = type.getComponentType();
@@ -151,6 +163,12 @@ for (int i = 0; i < params.length; i++) {
     }
 }
 Object o = method.invoke(instance, args);
+
+// Apres l'invoke : reporter la Map Mysession dans la HttpSession
+// (avant le forward vers la vue, pour que le JSP voie les valeurs)
+if (mysession != null) {
+    mysession.save(request.getSession());
+}
 
             
                 if(mapping.isJson()){

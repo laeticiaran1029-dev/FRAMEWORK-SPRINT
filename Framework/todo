@@ -119,10 +119,93 @@ sprint7(dans chat)
  a se souvenir : le framework ne prends pas en compte 
  les fichier readme
 
- suite , session :
+ suite sprint9 (ok) , session : mercredi eriny!
  authentification vao tsy misy session de tsy mety 
- but : atao izay ho disponnible an ilay utilisateur ao anaty controller 
-ahoana no ahatonga an ilay session ho dispo anaty methode d'action (cotroller)
+ selon mr : 
+ instance iray no mamaly ny requette rehetra (singletone) ao anaty context
+ rehefa nanao binding dia nanisy map natao parametre 
+ donc pour la session faire une class de injecter dans le framwork 
 
- comment à mon avis : 
- dans empcontroller on ajoute une session pour recuprer le nom de l'employé inserer
+ Q : raha oatra ka isak i methode d action izay mila session 
+ tiana isy anio class vavao dia icreer class foana ve , cela peut entrainer un pbm de memoire
+
+ ilay class methode standard , pour chaque session 1 ihany 
+ misy methode adaka azahoana variable anaty session dia iny no bouclena avy eo 
+
+ resumé
+ creer une class : map ,string, object  ;critere mirecup variable  
+ dia iny type vavao iny no apetraka anaty methoded action 1 , 
+ dia refa misy aniny ilay methode d action dia afaka volavilaine 
+
+ coté fm ; refa manao traitement param 
+ manampy bloque iray misy oe raha misy type session atsika 
+ session != null 
+ de ilay map ao anatiny fenoina am alalan ny httpsession , ao zany no afaka manao boucle 
+
+ ref vita ny invoke dia mila atao maj ny httpsession 
+ dia puisssance an objet de atao ref vita le invoke methode de tsindrina ftsn 
+ le http session
+ tsy mila atao anaty modele view zany
+
+
+ Objectif : le développeur peut recevoir
+  la session de l'utilisateur dans une
+   méthode de controller, y ranger des 
+   données, et les retrouver à la requête
+    suivante.
+
+1. Framework (FrontControllerServlet)
+ - Ajouter l'import jakarta.servlet.http.HttpSession
+ - Dans processRequest, dans la boucle des paramètres, 
+            ajouter une branche type == HttpSession.class
+ - Dans cette branche, donner la session de la requête à args[i]
+ - Placer la branche à côté de celle de HttpServletRequest,
+             avant le bind(...) final
+ - Relancer Framework\run1.bat
+
+
+2. Application de test (EmpController)
+ - Ajouter un paramètre HttpSession session à une méthode 
+            existante (par exemple liste)
+ - Y enregistrer une valeur avec session.setAttribute(...),
+             par exemple le nom du dernier employé inséré
+ - Ajouter une méthode GET qui relit la valeur avec 
+            session.getAttribute(...), pour prouver qu'elle survit à la requête
+
+
+3. Vue (empResult.jsp)
+ - Afficher la valeur avec <%= session.getAttribute("...") %> 
+            (aucun import n'est nécessaire)
+ - Gérer le cas où elle vaut null (aucune session encore remplie)
+
+
+4. Tests
+ - deploy.bat, puis envoyer le formulaire une seule fois
+ - Ouvrir la page de relecture : la valeur doit encore être là
+ - Ouvrir une fenêtre de navigation privée : la valeur 
+            doit ne pas apparaître, car c'est une autre session
+ - Vérifier que les anciennes fonctions marchent encore (formulaire, liste, upload)
+
+5. Rendu
+ Cocher le sprint dans le fichier todo
+ git add ., git commit -m "Sprint 9 : session", git push
+ Créer la branche du sprint avant de commiter
+
+Questions à poser au prof
+Faut-il utiliser HttpSession directement, ou créer notre propre classe de session dans le framework (comme Mapfile) ?
+Doit-on gérer l'authentification (login, logout), ou seulement mettre la session à disposition du controller ?
+Quelle est la durée de vie attendue de la session (expiration) ?
+Idées en option, si le temps le permet
+Une méthode logout qui appelle session.invalidate()
+Une redirection vers un formulaire de connexion quand la session ne contient pas d'utilisateur
+Un attribut du framework qui protège certaines URLs (comme @Mapping, mais pour l'authentification)
+
+sprint10:
+misy methode d'action any anatin ny controller ny dev associé anaty url 
+anaty rn methode reny asiana oe "tsy maintsy connecté(auth) vao afaka
+mi excuté "
+
+sprint 10 bis :
+tsy hoe connecté fotsiny fa tsy maintsy manana role
+spef
+(prof , etudiant , etc)

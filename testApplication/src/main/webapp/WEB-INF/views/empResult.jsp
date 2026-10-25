@@ -5,6 +5,11 @@
 <body>
  <h1>Liste des employés</h1>
 
+  <% Object dernier = session.getAttribute("dernierEmp"); %>
+  <p>Dernier employé (session) :
+    <%= dernier != null ? dernier : "aucune session remplie" %>
+  </p>
+
   <% Mapfile photo = (Mapfile) request.getAttribute("photo"); %>
   <% if (photo != null) { %>
       <img src="data:image/jpeg;base64,
