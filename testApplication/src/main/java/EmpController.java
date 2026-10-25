@@ -2,6 +2,7 @@ package main.java;
 
 import java.util.List;
 
+import annotation.Auth;
 import annotation.Controller;
 import annotation.Mapping;
 import config.model.Emp;
@@ -58,6 +59,25 @@ public ModelView liste(List<Emp> emps,Mapfile photo, Mysession session) {
 public ModelView dernier(Mysession session) {
     // la vue lit la valeur via session.getAttribute("dernierEmp")
     return new ModelView("empResult");
+}
+
+// Sprint 10 : connexion (la cle "user" est celle que lit le framework, cf. auth-key)
+@Mapping(url = "/emp/loginForm", method = "GET")
+public ModelView loginForm() {
+    return new ModelView("loginForm");
+}
+
+@Mapping(url = "/emp/login", method = "POST")
+public ModelView login(String login, Mysession session) {
+    session.set("user", login);
+    return new ModelView("profil");
+}
+
+// Sprint 10 : accessible seulement si connecte, sinon redirige vers login-url
+@Auth
+@Mapping(url = "/emp/profil", method = "GET")
+public ModelView profil() {
+    return new ModelView("profil");
 }
 
 // Logout : detruit la session

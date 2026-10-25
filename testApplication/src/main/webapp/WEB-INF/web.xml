@@ -48,7 +48,19 @@
             <param-name>upload-path</param-name>
             <param-value>C:/uploads</param-value>
         </init-param>
-        
+
+        <!-- Sprint 10 : attribut de session qui signifie "connecte" (defaut : user) -->
+        <init-param>
+            <param-name>auth-key</param-name>
+            <param-value>user</param-value>
+        </init-param>
+
+        <!-- Sprint 10 : redirection si methode @Auth sans connexion (sinon erreur 401) -->
+        <init-param>
+            <param-name>login-url</param-name>
+            <param-value>/emp/loginForm</param-value>
+        </init-param>
+
         <load-on-startup>1</load-on-startup>
     </servlet>
 

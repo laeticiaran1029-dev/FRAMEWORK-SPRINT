@@ -200,7 +200,7 @@ Une méthode logout qui appelle session.invalidate()
 Une redirection vers un formulaire de connexion quand la session ne contient pas d'utilisateur
 Un attribut du framework qui protège certaines URLs (comme @Mapping, mais pour l'authentification)
 
-sprint10:
+sprint10 (ok):
 misy methode d'action any anatin ny controller ny dev associé anaty url 
 anaty rn methode reny asiana oe "tsy maintsy connecté(auth) vao afaka
 mi excuté "

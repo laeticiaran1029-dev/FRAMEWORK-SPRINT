@@ -29,6 +29,8 @@ public class FrontControllerServlet extends HttpServlet {
 
     private String viewPrefix;
     private String uploadPath;
+    private String authKey;   // attribut de session qui indique "connecte"
+    private String loginUrl;  // page de connexion (optionnel)
     private final String SUFFIX = ".jsp";
 
 
@@ -36,7 +38,12 @@ public class FrontControllerServlet extends HttpServlet {
     public void init() throws ServletException {
         this.viewPrefix = getInitParameter("view-prefix");
         this.uploadPath = getInitParameter("upload-path");
-       
+        this.authKey = getInitParameter("auth-key");
+        this.loginUrl = getInitParameter("login-url");
+        if (this.authKey == null) {
+            this.authKey = "user";
+        }
+
         if (this.viewPrefix == null) {
             this.viewPrefix = "/WEB-INF/views/";
         }
@@ -53,7 +60,7 @@ public class FrontControllerServlet extends HttpServlet {
                         if (method.isAnnotationPresent(annotation.Mapping.class)) {
                             annotation.Mapping mappingAnnotation = method.getAnnotation(annotation.Mapping.class);
                             framework.utils.RouteKey routeKey = new framework.utils.RouteKey(mappingAnnotation.url(), mappingAnnotation.method());
-                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName(),mappingAnnotation.json()));
+                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName(),mappingAnnotation.json(), method.isAnnotationPresent(annotation.Auth.class)));
                         }
                     }
                 }
@@ -78,6 +85,16 @@ public class FrontControllerServlet extends HttpServlet {
         if (urlMappings.containsKey(routeKey)) {
             try {
                 framework.utils.Mapping mapping = urlMappings.get(routeKey);
+
+                // Sprint 10 : methode @Auth => il faut etre connecte
+                if (mapping.isAuth() && !isAuthenticated(request)) {
+                    if (loginUrl != null && !mapping.isJson()) {
+                        response.sendRedirect(request.getContextPath() + loginUrl);
+                    } else {
+                        response.sendError(401, "Authentification requise : " + url);
+                    }
+                    return;
+                }
                 Class<?> clazz = Class.forName(mapping.getClassName());
                 Object instance = clazz.getDeclaredConstructor().newInstance();
                 Method method = null;
@@ -223,6 +240,13 @@ private Object bind(HttpServletRequest request, Class<?> objectType, String pref
     return object;
 }
 
+
+// Connecte = la session existe deja et contient l'attribut authKey
+// (getSession(false) : ne cree pas de session pour un visiteur anonyme)
+private boolean isAuthenticated(HttpServletRequest request) {
+    HttpSession session = request.getSession(false);
+    return session != null && session.getAttribute(authKey) != null;
+}
 
 private boolean isSimple(Class<?> type) {
     return type == String.class || type.isPrimitive()
