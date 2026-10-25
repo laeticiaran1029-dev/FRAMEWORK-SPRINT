@@ -1,4 +1,4 @@
-SPRINT 0:
+SPRINT 0:(ok)
 creer une branche git hub 
 manipuler les different main 
 creer une fonction qui recupere les URL , peut import ce que c est 
@@ -12,7 +12,7 @@ preciser les noms de variables et attribut qu'on peut poser dans l'annotation
 puis creer une class pour annoter l'annotation 
 puis tester 
 
-SPRINT 1 : 
+SPRINT 1 : (ok)
 creer une annotation qu on va mettre sur le controller (dans le framework):
  pour dire que la class est un controller
 exemple = mg:itu.nomprojet-annotation.controller 
@@ -34,5 +34,178 @@ Dans l'application de test , creer une variable dans le fichier xml
 Methode  qui verifier si l'annotation existe ou pas
 A donner :annotation - package - niveau
 
+SPRINT 2:
+objectif (iza controller associer à l'URL)
+comment ?
+Creer une annotation poser sur une methode
+ex @controller
+EmpController
+=
+@urlmapping("/emp/list")
+donc="/emp/list"
+
+donc résultat attendu (url no antsoina)
+/emp/list ao amin'ny EmpCOntroller -> liste
+
+/emp/new  ao amin'ny EmpController -> create
+
+rehefa tsy fatatra dia manao throws "URL introuvable"
+dia tenena ny url supporteny
+
+le but c est que l'URL soit unique sinon ca affiche throws exception
+
+SPRINT 3
+Partie 1 : on peut utiliser le meme url si l'autre est GET et l'autre POST : creer une class et cette
+classe va creer la manipuler
+utilisant la méthode equals
+l'annotation prend un deuxieme argument optionnel ex:@url(\url,"GET");
+
+il faut d abord tester si il y a la clé , en utilisant la methode
+"contains key"
+
+Partie 2: appeler la methode existant dans l'url  et invoquer
+
+sprint 4 : ajout listner "ApplicationListner.java" dans le meme dossier que frontController.java
+
+sprint 5 : ajouter modelview dans utils
+avoir un fichier view "index.jsp 
+prefixe et suffixe ->anarany le jsp misy anle vue , jsp , html etc 
+liste en dure dans le view 
+affichage du bouton qui redirige vers view dans le fichier de test où il y avait bis3
+
+Sprint 5-bis connection à Spring : le but c est de prendre les 
+liste via base de donnee en utilisant spring boot
+
+sprint 6: WEB API (mamerina json):
+
+tsy mandeha any amin vu rehefa atsoina le
+ url associé a la methode fa mamerina json (api rest , rest controller)
+ (tsy manao requetDispatcher)
+
+ coté framework apiana anotation iray 
+ coté fa no miantso librairie mamaky ilay json
+
+ asiana attribut manao true flase mamatatra json ou pas 
+
+ suite  : upload de fichier 
+ etape : 
+ - ajout annotation mapping du true or false boolean
+ - ajout dans utils mapping boolean is json 
+
+------ a rendre le 11 octobre -------
+sprint7(dans chat)
+-anaty methode d'action(controller) mandray argument ...
+ sprint 7 bis : binding objct 
+ -raha manana arg 1 ,ex:emp 
+ donc instance employée dispo anaty 
+
+ ?? manome formulaire dia tokony ho feno koa le object amin ny attibut anle object 
+ donc object dans object 
+
+ suite ------
+ upload (type tableau byte)
+ utilisation de map 
+ inpute type =file 
+
+ file ?? : stocker server 
+           bdd
+ 
+ ou onn creer notre class ex MapFile 
+ attribut  filename + extension ; binaire 
+
+ type class = Mapfile 
+ instancé dans framework
+
+ a se souvenir : le framework ne prends pas en compte 
+ les fichier readme
+
+ suite sprint9 (ok) , session : mercredi eriny!
+ authentification vao tsy misy session de tsy mety 
+ selon mr : 
+ instance iray no mamaly ny requette rehetra (singletone) ao anaty context
+ rehefa nanao binding dia nanisy map natao parametre 
+ donc pour la session faire une class de injecter dans le framwork 
+
+ Q : raha oatra ka isak i methode d action izay mila session 
+ tiana isy anio class vavao dia icreer class foana ve , cela peut entrainer un pbm de memoire
+
+ ilay class methode standard , pour chaque session 1 ihany 
+ misy methode adaka azahoana variable anaty session dia iny no bouclena avy eo 
+
+ resumé
+ creer une class : map ,string, object  ;critere mirecup variable  
+ dia iny type vavao iny no apetraka anaty methoded action 1 , 
+ dia refa misy aniny ilay methode d action dia afaka volavilaine 
+
+ coté fm ; refa manao traitement param 
+ manampy bloque iray misy oe raha misy type session atsika 
+ session != null 
+ de ilay map ao anatiny fenoina am alalan ny httpsession , ao zany no afaka manao boucle 
+
+ ref vita ny invoke dia mila atao maj ny httpsession 
+ dia puisssance an objet de atao ref vita le invoke methode de tsindrina ftsn 
+ le http session
+ tsy mila atao anaty modele view zany
 
 
+ Objectif : le développeur peut recevoir
+  la session de l'utilisateur dans une
+   méthode de controller, y ranger des 
+   données, et les retrouver à la requête
+    suivante.
+
+1. Framework (FrontControllerServlet)
+ - Ajouter l'import jakarta.servlet.http.HttpSession
+ - Dans processRequest, dans la boucle des paramètres, 
+            ajouter une branche type == HttpSession.class
+ - Dans cette branche, donner la session de la requête à args[i]
+ - Placer la branche à côté de celle de HttpServletRequest,
+             avant le bind(...) final
+ - Relancer Framework\run1.bat
+
+
+2. Application de test (EmpController)
+ - Ajouter un paramètre HttpSession session à une méthode 
+            existante (par exemple liste)
+ - Y enregistrer une valeur avec session.setAttribute(...),
+             par exemple le nom du dernier employé inséré
+ - Ajouter une méthode GET qui relit la valeur avec 
+            session.getAttribute(...), pour prouver qu'elle survit à la requête
+
+
+3. Vue (empResult.jsp)
+ - Afficher la valeur avec <%= session.getAttribute("...") %> 
+            (aucun import n'est nécessaire)
+ - Gérer le cas où elle vaut null (aucune session encore remplie)
+
+
+4. Tests
+ - deploy.bat, puis envoyer le formulaire une seule fois
+ - Ouvrir la page de relecture : la valeur doit encore être là
+ - Ouvrir une fenêtre de navigation privée : la valeur 
+            doit ne pas apparaître, car c'est une autre session
+ - Vérifier que les anciennes fonctions marchent encore (formulaire, liste, upload)
+
+5. Rendu
+ Cocher le sprint dans le fichier todo
+ git add ., git commit -m "Sprint 9 : session", git push
+ Créer la branche du sprint avant de commiter
+
+Questions à poser au prof
+Faut-il utiliser HttpSession directement, ou créer notre propre classe de session dans le framework (comme Mapfile) ?
+Doit-on gérer l'authentification (login, logout), ou seulement mettre la session à disposition du controller ?
+Quelle est la durée de vie attendue de la session (expiration) ?
+Idées en option, si le temps le permet
+Une méthode logout qui appelle session.invalidate()
+Une redirection vers un formulaire de connexion quand la session ne contient pas d'utilisateur
+Un attribut du framework qui protège certaines URLs (comme @Mapping, mais pour l'authentification)
+
+sprint10 (ok):
+misy methode d'action any anatin ny controller ny dev associé anaty url 
+anaty rn methode reny asiana oe "tsy maintsy connecté(auth) vao afaka
+mi excuté "
+
+sprint 10 bis (ok) :
+tsy hoe connecté fotsiny fa tsy maintsy manana role
+spef
+(prof , etudiant , etc)

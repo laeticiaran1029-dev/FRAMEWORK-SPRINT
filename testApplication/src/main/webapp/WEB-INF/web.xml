@@ -4,16 +4,70 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
     <display-name>application test framework</display-name>
+
+    <!-- ========== Sprint 5-bis : demarrage de Spring ========== -->
+
+    <!-- On utilise une configuration par annotations (@Configuration)
+         au lieu du XML historique de Spring -->
+    <context-param>
+        <param-name>contextClass</param-name>
+        <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+    </context-param>
+
+    <!-- La classe de configuration a charger -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>main.java.config.AppConfig</param-value>
+    </context-param>
+
+    <!-- ORDRE IMPORTANT : Spring cree son contexte en premier... -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!-- ...puis notre listener va le chercher et le republie sous "springContext" -->
+    <listener>
+        <listener-class>main.java.AppListener</listener-class>
+    </listener>
+
     <servlet>
         <servlet-name>FrontController</servlet-name>
         <servlet-class>main.java.FrontControllerServlet</servlet-class>
         
         <init-param>
             <param-name>controller-package</param-name>
-            <param-value>testApplication.src.main.java</param-value> 
+            <param-value>main.java</param-value>
         </init-param>
-        
-        <load-on-startup>1</load-on-startup> 
+
+        <init-param>
+            <param-name>view-prefix</param-name>
+            <param-value>/WEB-INF/views/</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>upload-path</param-name>
+            <param-value>C:/uploads</param-value>
+        </init-param>
+
+        <!-- Sprint 10 : attribut de session qui signifie "connecte" (defaut : user) -->
+        <init-param>
+            <param-name>auth-key</param-name>
+            <param-value>user</param-value>
+        </init-param>
+
+        <!-- Sprint 10 bis : attribut de session qui contient le role (defaut : role) -->
+        <init-param>
+            <param-name>role-key</param-name>
+            <param-value>role</param-value>
+        </init-param>
+
+        <!-- Sprint 10 : redirection si methode @Auth sans connexion (sinon erreur 401) -->
+        <init-param>
+            <param-name>login-url</param-name>
+            <param-value>/emp/loginForm</param-value>
+        </init-param>
+
+        <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
