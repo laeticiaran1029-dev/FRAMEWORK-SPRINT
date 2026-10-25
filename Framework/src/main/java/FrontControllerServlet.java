@@ -31,6 +31,7 @@ public class FrontControllerServlet extends HttpServlet {
     private String uploadPath;
     private String authKey;   // attribut de session qui indique "connecte"
     private String loginUrl;  // page de connexion (optionnel)
+    private String roleKey;   // attribut de session qui contient le(s) role(s)
     private final String SUFFIX = ".jsp";
 
 
@@ -40,8 +41,12 @@ public class FrontControllerServlet extends HttpServlet {
         this.uploadPath = getInitParameter("upload-path");
         this.authKey = getInitParameter("auth-key");
         this.loginUrl = getInitParameter("login-url");
+        this.roleKey = getInitParameter("role-key");
         if (this.authKey == null) {
             this.authKey = "user";
+        }
+        if (this.roleKey == null) {
+            this.roleKey = "role";
         }
 
         if (this.viewPrefix == null) {
@@ -60,7 +65,8 @@ public class FrontControllerServlet extends HttpServlet {
                         if (method.isAnnotationPresent(annotation.Mapping.class)) {
                             annotation.Mapping mappingAnnotation = method.getAnnotation(annotation.Mapping.class);
                             framework.utils.RouteKey routeKey = new framework.utils.RouteKey(mappingAnnotation.url(), mappingAnnotation.method());
-                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName(),mappingAnnotation.json(), method.isAnnotationPresent(annotation.Auth.class)));
+                            urlMappings.put(routeKey, new framework.utils.Mapping(className, method.getName(),mappingAnnotation.json(), method.isAnnotationPresent(annotation.Auth.class),
+                                method.isAnnotationPresent(annotation.Auth.class) ? method.getAnnotation(annotation.Auth.class).roles() : new String[0]));
                         }
                     }
                 }
@@ -93,6 +99,11 @@ public class FrontControllerServlet extends HttpServlet {
                     } else {
                         response.sendError(401, "Authentification requise : " + url);
                     }
+                    return;
+                }
+                // Sprint 10 bis : connecte mais sans le bon role => 403
+                if (mapping.isAuth() && mapping.getRoles().length > 0 && !hasRole(request, mapping.getRoles())) {
+                    response.sendError(403, "Role insuffisant : " + url);
                     return;
                 }
                 Class<?> clazz = Class.forName(mapping.getClassName());
@@ -246,6 +257,31 @@ private Object bind(HttpServletRequest request, Class<?> objectType, String pref
 private boolean isAuthenticated(HttpServletRequest request) {
     HttpSession session = request.getSession(false);
     return session != null && session.getAttribute(authKey) != null;
+}
+
+// Vrai si le(s) role(s) de la session (String, tableau ou Collection)
+// contiennent l'un des roles requis
+private boolean hasRole(HttpServletRequest request, String[] required) {
+    HttpSession session = request.getSession(false);
+    Object value = session == null ? null : session.getAttribute(roleKey);
+    if (value == null) return false;
+
+    java.util.List<Object> owned = new ArrayList<>();
+    if (value instanceof java.util.Collection) {
+        owned.addAll((java.util.Collection<?>) value);
+    } else if (value.getClass().isArray()) {
+        for (int i = 0; i < java.lang.reflect.Array.getLength(value); i++) {
+            owned.add(java.lang.reflect.Array.get(value, i));
+        }
+    } else {
+        owned.add(value);
+    }
+    for (String r : required) {
+        for (Object o : owned) {
+            if (o != null && r.equals(o.toString())) return true;
+        }
+    }
+    return false;
 }
 
 private boolean isSimple(Class<?> type) {

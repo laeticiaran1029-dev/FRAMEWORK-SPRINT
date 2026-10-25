@@ -68,9 +68,24 @@ public ModelView loginForm() {
 }
 
 @Mapping(url = "/emp/login", method = "POST")
-public ModelView login(String login, Mysession session) {
+public ModelView login(String login, String role, Mysession session) {
     session.set("user", login);
+    session.set("role", role);   // cle "role" = role-key par defaut
     return new ModelView("profil");
+}
+
+// Sprint 10 bis : reserve aux profs (connecte avec un autre role => 403)
+@Auth(roles = "prof")
+@Mapping(url = "/emp/notes", method = "GET")
+public ModelView notes() {
+    return new ModelView("notes");
+}
+
+// Sprint 10 bis : plusieurs roles acceptes
+@Auth(roles = {"prof", "etudiant"})
+@Mapping(url = "/emp/cours", method = "GET")
+public ModelView cours() {
+    return new ModelView("notes");
 }
 
 // Sprint 10 : accessible seulement si connecte, sinon redirige vers login-url

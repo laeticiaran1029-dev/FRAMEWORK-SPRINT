@@ -5,16 +5,18 @@ public class Mapping {
      private final String methodName;
      private final boolean isJson;
      private final boolean auth;
+     private final String[] roles;
 
     public Mapping(String className, String methodName, boolean isJson) {
-        this(className, methodName, isJson, false);
+        this(className, methodName, isJson, false, new String[0]);
     }
 
-    public Mapping(String className, String methodName, boolean isJson, boolean auth) {
+    public Mapping(String className, String methodName, boolean isJson, boolean auth, String[] roles) {
         this.className = className;
         this.methodName = methodName;
         this.isJson = isJson;
         this.auth = auth;
+        this.roles = roles;
     }
 
     public String getClassName() {
@@ -32,5 +34,9 @@ public class Mapping {
 
     public boolean isAuth(){
         return auth;
+    }
+
+    public String[] getRoles(){
+        return roles;
     }
 }

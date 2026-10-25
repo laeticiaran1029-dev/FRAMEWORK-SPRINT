@@ -55,6 +55,12 @@
             <param-value>user</param-value>
         </init-param>
 
+        <!-- Sprint 10 bis : attribut de session qui contient le role (defaut : role) -->
+        <init-param>
+            <param-name>role-key</param-name>
+            <param-value>role</param-value>
+        </init-param>
+
         <!-- Sprint 10 : redirection si methode @Auth sans connexion (sinon erreur 401) -->
         <init-param>
             <param-name>login-url</param-name>
