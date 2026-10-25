@@ -1,0 +1,10 @@
+{
+    "java.project.referencedLibraries": [
+        "c:\\apache-tomcat-10.1.55\\lib\\servlet-api.jar",
+        "testApplication\\lib\\framework.jar"
+    ],
+    "java.project.sourcePaths": [
+        "Framework\\src",
+        "testApplication\\src"
+    ]
+}
