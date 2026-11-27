@@ -22,5 +22,6 @@
         }
     %>
     </ul>
+    <a href="empForm.jsp">retour</a>
 </body>
 </html>

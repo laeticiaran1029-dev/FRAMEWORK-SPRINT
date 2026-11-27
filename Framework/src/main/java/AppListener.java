@@ -3,6 +3,8 @@ package main.java;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Declare dans le web.xml de l'application (et non par @WebListener),
@@ -17,5 +19,7 @@ public class AppListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext servletContext = sce.getServletContext();
         servletContext.setAttribute("springContext", servletContext.getAttribute(SPRING_ROOT));
+        Map<Class<?>, Object> controllersInstance = new ConcurrentHashMap<>();
+        servletContext.setAttribute("controllersInstance", controllersInstance);
     }
 }

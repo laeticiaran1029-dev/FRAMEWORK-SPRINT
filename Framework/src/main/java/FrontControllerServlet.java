@@ -20,7 +20,7 @@ import jakarta.servlet.http.Part;
 import framework.utils.Mapfile;
 import framework.utils.Mysession;
 import jakarta.servlet.http.HttpSession;
-
+import java.util.Map;
 
 @MultipartConfig
 public class FrontControllerServlet extends HttpServlet {
@@ -107,7 +107,16 @@ public class FrontControllerServlet extends HttpServlet {
                     return;
                 }
                 Class<?> clazz = Class.forName(mapping.getClassName());
-                Object instance = clazz.getDeclaredConstructor().newInstance();
+                
+                Map<Class<?>,Object> controllerList =
+                    (Map<Class<?>,Object>) getServletContext().getAttribute("controllersInstance");
+                    Object instance = controllerList.get(clazz);
+                    if(instance == null){
+                        instance = clazz.getDeclaredConstructor().newInstance();
+                        Object existing = controllerList.putIfAbsent(clazz, instance);
+                        if (existing != null) instance = existing;
+                    }
+
                 Method method = null;
                 for (Method m : clazz.getDeclaredMethods()) {
                     if (m.getName().equals(mapping.getMethodName())) {

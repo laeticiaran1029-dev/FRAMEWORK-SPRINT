@@ -203,9 +203,77 @@ Un attribut du framework qui protège certaines URLs (comme @Mapping, mais pour 
 sprint10 (ok):
 misy methode d'action any anatin ny controller ny dev associé anaty url 
 anaty rn methode reny asiana oe "tsy maintsy connecté(auth) vao afaka
-mi excuté "
+mi excutçé "
 
 sprint 10 bis (ok) :
 tsy hoe connecté fotsiny fa tsy maintsy manana role
 spef
 (prof , etudiant , etc)
+mila tenenina izany ilay dev, oe ity fonctionnalité iray ity 
+"role admin"
+"auth ihany"
+
+sprint 11 : Performance (une seule instance par controller)
+
+ Objectif : ne plus faire new Controller() a chaque requete.
+  Chaque controller est cree une seule fois (singleton), range
+  dans une map du ServletContext, puis reutilise par toutes les
+  requetes de tous les utilisateurs.
+  (rappel : ServletContext = global a l'app, different de la session
+   qui est propre a chaque utilisateur)
+
+1. Listener (AppListener ou FrontControllerListener)
+ [x]- Ajouter les imports java.util.Map et java.util.concurrent.ConcurrentHashMap
+ - Dans contextInitialized (demarrage de l'app), creer
+            Map<Class<?>, Object> controllersInstance = new ConcurrentHashMap<>();
+   (ConcurrentHashMap au lieu de HashMap : plusieurs requetes en meme temps)
+ - La mettre dans le contexte :
+            servletContext.setAttribute("controllersInstance", controllersInstance);
+ - Au demarrage la map est vide : les controllers sont crees a la demande
+
+2. Framework (FrontControllerServlet)
+ - Remplacer la ligne
+            Object instance = clazz.getDeclaredConstructor().newInstance();
+   (apres Class.forName(mapping.getClassName()))
+ - Recuperer la map :
+            Map<Class<?>, Object> controllerList =
+              (Map<Class<?>, Object>) getServletContext().getAttribute("controllersInstance");
+ - Chercher l'instance : Object instance = controllerList.get(clazz);
+ - Si instance == null : la creer avec newInstance() et
+            controllerList.put(clazz, instance)
+   (ou controllerList.computeIfAbsent(clazz, c -> creer) pour etre thread-safe)
+ - Ne toucher qu'a cet endroit : le reste (params, bind, invoke) ne change pas
+ - Relancer Framework\run1.bat
+
+3. Application de test (testApplication)
+ - Ajouter dans un controller (ex : EmpController) un constructeur
+            avec System.out.println("EmpController cree")
+ - Appeler plusieurs fois la meme URL : le message ne doit
+            apparaitre qu'UNE SEULE fois dans la console Tomcat
+ - Verifier qu'aucun controller de test ne garde de donnees
+            d'un utilisateur dans ses champs (l'instance est partagee !)
+
+4. Tests
+ - deploy.bat, puis appeler la meme URL 3 fois : constructeur appele 1 seule fois
+ - Appeler une URL d'un autre controller : il est cree 1 fois aussi
+ - Verifier que les anciennes fonctions marchent encore
+            (formulaire, liste, upload, session, @Auth et roles)
+ - Verifier que la session reste bien separee par utilisateur
+            (fenetre privee) : l'instance est partagee, pas la session
+
+5. Rendu
+ Cocher le sprint dans le fichier todo
+ Creer la branche du sprint avant de commiter
+ git add ., git commit -m "Sprint 11 : une instance par controller", git push
+
+Questions a poser au prof
+ La map doit-elle etre remplie au demarrage (listener) ou a la demande
+            (premier appel) ? Le sujet dit "deja creer" mais la map part vide.
+ Doit-on utiliser HashMap (sujet) ou ConcurrentHashMap (thread-safe) ?
+ Que faire si un controller a des attributs d'instance (etat partage entre
+            utilisateurs) ? Interdit ou a la charge du dev ?
+
+Idees en option, si le temps le permet
+ Pre-creer toutes les instances des classes @Controller au demarrage
+            (dans le listener, au moment du scan)
+ Un log "instance creee" / "instance reutilisee" pour prouver le cache

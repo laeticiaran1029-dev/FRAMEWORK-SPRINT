@@ -14,6 +14,10 @@ import framework.utils.Mysession;
 @Controller
 public class EmpController {
 
+    public EmpController() {
+        System.out.println("EmpController cree : " + this);
+    }
+
     @Mapping(url = "/emp/form")
     public ModelView form() {
         return new ModelView("empForm");
